@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User{
+  id String @id @default(uuid())
+  email String @unique
+  password String 
+  refresh_toke String?
+  reviews Review[]
+  bookings Booking[]
+  role Role
+  createdAT DateTime @default(now())
+  updatedAT DateTime @updatedAt()
+}
+
+model Host{
+  id String @id @default(uuid())
+  name String @unique
+  email String @unique
+  phoneNumber Int @unique
+  password String 
+  role Role
+  accommodation Accommodation[]
+  booking Booking[]
+  createdAT DateTime @default(now())
+  updatedAT DateTime @updatedAt()
+}
+model Accommodation{
+  id String @id @default(uuid())
+  name String @unique
+  description String
+  price Int
+  location String
+  rating Float @default(0)
+  hostId String
+  host Host @relation(fields: [hostId], references: [id])
+  reviews Review[]
+  bookings Booking[]
+  createdAT DateTime @default(now())
+  updatedAT DateTime @updatedAt
+}
+model Review{
+  id String @id @default(uuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+  title String
+  content String
+  rating Float @default(0)
+  accommodationId String @unique
+  accommodation Accommodation @relation(fields: [accommodationId], references: [id])
+  createdAT DateTime @default(now())
+  updatedAT DateTime @updatedAt
+}
+model Booking{
+  id String @id @default(uuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+  accommodationId String @unique
+  accommodation Accommodation @relation(fields: [accommodationId], references: [id])
+  hostId String
+  host Host @relation(fields: [hostId], references: [id])
+  status BookingStatus
+  checkInDate DateTime
+  checkOutDate DateTime
+}
+model Image{
+  id String @id @default(uuid())
+  name String
+  description String
+  createdAT DateTime @default(now())
+  updatedAT DateTime @updatedAt
+}
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+enum Role {
+  USER
+  ADMIN
+  HOST
+}
