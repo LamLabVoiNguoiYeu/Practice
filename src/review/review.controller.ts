@@ -1,10 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ReviewService } from './review.service';
-import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Role } from '@prisma/client';
-import { Roles } from 'src/auth/decorators/roles.decorator';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CreateReviewDto, UpdateReviewDto } from './dto';
+
 @ApiTags('Review')
 @Controller('review')
 export class ReviewController {
@@ -14,8 +12,6 @@ export class ReviewController {
   @ApiCreatedResponse({description: 'Create new review successfully'})
   @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
   @ApiBadRequestResponse({description: 'Bad request!'})
-  @ApiBearerAuth()
-  @Roles(Role.HOST)
   @Post()
   create(@Body() createReviewDto: CreateReviewDto) {
     return this.reviewService.create(createReviewDto);
@@ -34,7 +30,7 @@ export class ReviewController {
   @ApiCreatedResponse({description: 'Get review by id successfully'})
   @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
   @ApiBadRequestResponse({description: 'Bad request!'})
-  @Get('/:{id}') 
+  @Get(':id') 
   findOne(@Param('id') id: string) {
     return this.reviewService.findOne(id);
   }
@@ -43,7 +39,7 @@ export class ReviewController {
   @ApiCreatedResponse({description: 'Update review by id successfully'})
   @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
   @ApiBadRequestResponse({description: 'Bad request!'})
-  @Patch('/:{id}') 
+  @Patch(':id') 
   update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
     return this.reviewService.update(id, updateReviewDto);
   }
@@ -52,7 +48,7 @@ export class ReviewController {
   @ApiCreatedResponse({description: 'Delete review by idsuccessfully'})
   @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
   @ApiBadRequestResponse({description: 'Bad request!'})
-  @Delete('/:{id}')  
+  @Delete(':id')  
   remove(@Param('id') id: string) {
     return this.reviewService.remove(id);
   }

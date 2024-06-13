@@ -1,8 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { BookingService } from './booking.service';
-import { CreateBookingDto } from './dto/create-booking.dto';
-import { UpdateBookingDto } from './dto/update-booking.dto';
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CreateBookingDto, UpdateBookingDto } from './dto';
 
 @ApiTags('Booking')
 @Controller('booking')
@@ -31,7 +30,7 @@ export class BookingController {
   @ApiCreatedResponse({description: 'Get booking by id successfully'})
   @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
   @ApiBadRequestResponse({description: 'Bad request!'})
-  @Get('/:{id}') 
+  @Get(':id') 
   findOne(@Param('id') id: string) {
     return this.bookingService.findOne(id);
   }
@@ -40,7 +39,7 @@ export class BookingController {
   @ApiCreatedResponse({description: 'Update booking by id successfully'})
   @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
   @ApiBadRequestResponse({description: 'Bad request!'})
-  @Patch('/:{id}') 
+  @Patch(':id') 
   update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
     return this.bookingService.update(id, updateBookingDto);
   }
@@ -49,7 +48,7 @@ export class BookingController {
   @ApiCreatedResponse({description: 'Delete booking by idsuccessfully'})
   @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
   @ApiBadRequestResponse({description: 'Bad request!'})
-  @Delete('/:{id}')  
+  @Delete(':id')  
   remove(@Param('id') id: string) {
     return this.bookingService.remove(id);
   }

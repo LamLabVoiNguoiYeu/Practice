@@ -6,21 +6,42 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class ImageService {
   constructor(
-    private prisma: PrismaService
+    private prismaService: PrismaService
   ){}
-  create(createImageDto: CreateImageDto) {
-    return this.prisma.image.create({data: createImageDto})
+  async create(createImageDto: CreateImageDto) {
+    const{photo_url, accomodationId} = createImageDto
+    return await this.prismaService.image.create({
+      data:{
+        accommodation: {
+          connect: {accommodation_id: accomodationId}
+        },
+        photo_url
+      }
+    });
   }
 
-  findOne(id: string) {
-    return this.prisma.image.findFirstOrThrow()
+  async findAll() {
+    return await this.prismaService.image.findMany();
   }
 
-  update(id: string, updateImageDto: UpdateImageDto) {
-    return this.prisma.image.update({where:{id}, data:updateImageDto})
+  async findOne(id: string) {
+    return await this.prismaService.image.findFirstOrThrow({where: {image_id: id}});
   }
 
-  remove(id: string) {
-    return this.prisma.image.delete({where: {id}})
+  async update(id: string, updateImageDto: UpdateImageDto) {
+    const{photo_url, accomodationId} = updateImageDto
+    return await this.prismaService.image.update({
+      where: {image_id: id},
+      data:{
+        accommodation: {
+          connect: {accommodation_id: accomodationId}
+        },
+        photo_url
+      }
+    });
+  }
+
+  async remove(id: string) {
+    return await this.prismaService.image.delete({where: {image_id: id}})
   }
 }

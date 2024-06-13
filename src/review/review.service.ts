@@ -1,13 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateReviewDto, UpdateReviewDto } from './dto';
 
 @Injectable()
 export class ReviewService {
-  private prisma : PrismaService
+  constructor(
+    private prisma : PrismaService
+  ){}
   async create(createReviewDto: CreateReviewDto) {
-    return await this.prisma.review.create({data: createReviewDto})
+    const{content, accommodationId, userId, rating} = createReviewDto
+    return await this.prisma.review.create({
+      data: {
+        user: {
+          connect: {user_id: userId}
+        },
+        accommodation: {
+          connect: {accommodation_id: accommodationId}
+        },
+        content,
+        rating
+      }
+    })
   }
 
   async findAll() {
@@ -15,14 +28,27 @@ export class ReviewService {
   }
 
   async findOne(id: string) {
-    return await this.prisma.review.findFirstOrThrow();
+    return await this.prisma.review.findFirstOrThrow({where: {review_id: id}});
   }
 
   async update(id: string, updateReviewDto: UpdateReviewDto) {
-    return await this.prisma.review.update({where: {id}, data:updateReviewDto})
+    const{content, accommodationId, userId, rating} = updateReviewDto
+    return await this.prisma.review.update({
+      where: {review_id: id},
+      data: {
+        user: {
+          connect: {user_id: userId}
+        },
+        accommodation: {
+          connect: {accommodation_id: accommodationId}
+        },
+        content,
+        rating
+      }
+    })
   }
 
   async remove(id: string) {
-    return await this.prisma.review.delete({where: {id}});
+    return await this.prisma.review.delete({where: {review_id: id}});
   }
 }

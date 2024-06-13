@@ -1,14 +1,14 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger/dist"
+import { IsNotEmpty, IsString } from "class-validator"
 
 export class CreateImageDto {
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    description: string
+    photo_url: string
 
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    name: string
+    accomodationId: string
 }

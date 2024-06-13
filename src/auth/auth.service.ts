@@ -2,99 +2,129 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SigninUserDto, SignupUserDto } from './dto';
 import * as bcrypt from 'bcrypt';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Role } from '@prisma/client';
-import { JwtPayload, Tokens } from './types';
 import { JwtService } from '@nestjs/jwt';
+import { JwtPayload, Tokens } from './types';
+
+
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
+    private prismaService: PrismaService,
     private jwtService: JwtService
   ){}
-  async signupLocal(signupUserDto: SignupUserDto): Promise<Tokens> {
+  async signup(signupUserDto: SignupUserDto): Promise<Tokens> {
     const { email, password, role } = signupUserDto;
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const newUser = await this.prisma.user.create({
-      data:{
-        email: email,
-        password: hashedPassword,
-        role: role,
-      }
-    })
-    const tokens = await this.getTokens(newUser.id, newUser.email,  newUser.role)
-    await this.updateRtHash(newUser.id, tokens.refresh_token)
-    return tokens
-  }
-  async signinLocal(signinUserDto: SigninUserDto): Promise<Tokens> {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        email: signinUserDto.email,
-      }
-    })
+    const user = await this.prismaService.user
+      .create({
+        data: {
+          email,
+          password: await bcrypt.hash(password, 10),
+          role,
+        },
+      })
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2002') {
+            throw new ForbiddenException('Credentials incorrect');
+          }
+        }
+        throw error;
+      });
 
-    if(!user) throw new ForbiddenException('Access denied: Invalid email!')
-       
-    const validatePassword = await bcrypt.compare(signinUserDto.password, user.password)
-    if(!validatePassword) throw new ForbiddenException('Access denied: Invalid password')
-    
-    const tokens = await this.getTokens(user.id, user.email,  user.role)
-    await this.updateRtHash(user.id, tokens.refresh_token)
-    return tokens
+    const tokens = await this.getTokens(user.user_id, user.email, user.role);
+    await this.updateRefreshToken(user.user_id, tokens.refresh_token);
+
+    return tokens;
+  }
+
+  async signin(signinUserDto: SigninUserDto): Promise<Tokens> {
+    const { email, password } = signinUserDto;
+
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+
+    if (!user) throw new ForbiddenException('Access Denied: Invalid email');
+
+    const validatePassword = await bcrypt.compare(password, user.password);
+    if (!validatePassword)
+      throw new ForbiddenException('Access Denied: Invalid password');
+
+    const tokens = await this.getTokens(user.user_id, user.email, user.role);
+    await this.updateRefreshToken(user.user_id, tokens.refresh_token);
+
+    return tokens;
   }
 
   async logout(user_id: string): Promise<boolean> {
-    const user = await this.prisma.user.update({
+    await this.prismaService.user.updateMany({
       where: {
-        id: user_id,
-        refresh_toke:{
-          not: null
-        }
+        user_id: user_id,
+        refresh_token: {
+          not: null,
+        },
       },
       data: {
-        refresh_toke: null
-      }
-    })
-    return true
-  }
-
-  async updateRtHash(userId: string, rt: string): Promise<void>{
-    await this.prisma.user.update({
-      where: {
-        id: userId,
+        refresh_token: null,
       },
-      data:{
-        refresh_toke: await bcrypt.hash(rt, 10)
-      }
-    })
+    });
+
+    return true;
   }
 
+  async refreshToken(user_id: string, refresh_token: string): Promise<Tokens> {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        user_id: user_id,
+      },
+    });
 
-  async refreshTokens(user_id: string, rt: string):Promise<Tokens>{
-    const user = await this.prisma.user.findUnique({
-      where:{
-        id: user_id
-      }
-    })
-    if(!user) throw new ForbiddenException('Access denied')
-    
-    const validateToken = await bcrypt.compare(rt, user.refresh_toke)
-    if(!validateToken) throw new ForbiddenException('Acess denied:')
-    
-    const tokens = await this.getTokens(user.id, user.email,  user.role)
-    await this.updateRtHash(user.id, tokens.refresh_token)
-    return tokens
+    if (!user || !user.refresh_token)
+      throw new ForbiddenException(
+        'Access Denied: user not found or refresh token is null',
+      );
+
+    const validateToken = await bcrypt.compare(
+      refresh_token,
+      user.refresh_token,
+    );
+
+    if (!validateToken)
+      throw new ForbiddenException('Access Denied: Invalid refresh token');
+
+    const tokens = await this.getTokens(user.user_id, user.email, user.role);
+    await this.updateRefreshToken(user.user_id, tokens.refresh_token);
+
+    return tokens;
   }
-  async getTokens(id: string, email: string, role: Role){
+
+  async updateRefreshToken(
+    user_id: string,
+    refresh_token: string,
+  ): Promise<void> {
+    await this.prismaService.user.update({
+      where: { user_id: user_id },
+      data: {
+        refresh_token: await bcrypt.hash(refresh_token, 10),
+      },
+    });
+  }
+
+  async getTokens(user_id: string, email: string, role: Role): Promise<Tokens> {
     const jwtPayload: JwtPayload = {
-      id: id,
+      user_id: user_id,
       email: email,
       role: role,
     };
 
-    const [at, rt] = await Promise.all([
+    const [access_token, refresh_token] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
         secret: process.env.AT_JWT_SECRET,
-        expiresIn:  process.env.AT_JWT_EXPIRES_IN,
+        expiresIn: process.env.AT_JWT_EXPIRES_IN,
       }),
       this.jwtService.signAsync(jwtPayload, {
         secret: process.env.RT_JWT_SECRET,
@@ -103,8 +133,9 @@ export class AuthService {
     ]);
 
     return {
-      access_token: at,
-      refresh_token: rt,
+      access_token: access_token,
+      refresh_token: refresh_token,
     };
   }
+
 }

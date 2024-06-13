@@ -4,13 +4,11 @@ import * as dotenv from 'dotenv';
 import { env } from 'process';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HttpException, ValidationPipe } from '@nestjs/common';
-import { NotFoundExceptionFilter } from './exception/not-found.exception';
 
 
 dotenv.config()
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalFilters(new NotFoundExceptionFilter)
   app.useGlobalPipes(new ValidationPipe)
 
   const config = new DocumentBuilder()

@@ -14,71 +14,126 @@ datasource db {
 }
 
 model User{
-  id String @id @default(uuid())
+  user_id String @id @default(uuid())
   email String @unique
   password String 
-  refresh_toke String?
+  refresh_token String?
+
   reviews Review[]
   bookings Booking[]
+  accomodations Accommodation[]
+  payment Payment[]
   role Role
+  
   createdAT DateTime @default(now())
   updatedAT DateTime @updatedAt()
 }
 
-model Host{
-  id String @id @default(uuid())
-  name String @unique
-  email String @unique
-  phoneNumber Int @unique
-  password String 
-  role Role
-  accommodation Accommodation[]
-  booking Booking[]
-  createdAT DateTime @default(now())
-  updatedAT DateTime @updatedAt()
-}
+
 model Accommodation{
-  id String @id @default(uuid())
-  name String @unique
+  accommodation_id String @id @default(uuid())
   description String
-  price Int
+  price Float
   location String
   rating Float @default(0)
-  hostId String
-  host Host @relation(fields: [hostId], references: [id])
+
+  userId String
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  accommodationCategoryId String
+  accommodationCategory AccommodationCategory @relation( fields: [accommodationCategoryId], references: [accommodationCategory_id], onDelete: Cascade)
+  cityId String
+  city City @relation(fields: [cityId], references: [city_id], onDelete: Cascade)
   reviews Review[]
   bookings Booking[]
+  images Image[]
+
   createdAT DateTime @default(now())
   updatedAT DateTime @updatedAt
 }
+
+model AccommodationCategory {
+  accommodationCategory_id String @id @default(uuid())
+  categoryName String @unique
+  
+  accommodation Accommodation[]
+
+  createdAT DateTime @default(now())
+  updatedAT DateTime @updatedAt
+}
+
 model Review{
-  id String @id @default(uuid())
-  userId String @unique
-  user User @relation(fields: [userId], references: [id])
-  title String
+  review_id String @id @default(uuid())
   content String
   rating Float @default(0)
-  accommodationId String @unique
-  accommodation Accommodation @relation(fields: [accommodationId], references: [id])
+
+  userId String 
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  accommodationId String
+  accommodation Accommodation @relation(fields: [accommodationId], references: [accommodation_id], onDelete: Cascade)
+
   createdAT DateTime @default(now())
   updatedAT DateTime @updatedAt
 }
+
 model Booking{
-  id String @id @default(uuid())
-  userId String @unique
-  user User @relation(fields: [userId], references: [id])
-  accommodationId String @unique
-  accommodation Accommodation @relation(fields: [accommodationId], references: [id])
-  hostId String
-  host Host @relation(fields: [hostId], references: [id])
+  booking_id String @id @default(uuid())
+  totalCost String
   status BookingStatus
   checkInDate DateTime
   checkOutDate DateTime
+
+  payment Payment?
+  userId String 
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  accommodationId String 
+  accommodation Accommodation @relation(fields: [accommodationId], references: [accommodation_id], onDelete: Cascade)
+
+  createdAT DateTime @default(now())
+  updatedAT DateTime @updatedAt
 }
+
 model Image{
-  id String @id @default(uuid())
-  name String
-  description String
+  image_id String @id @default(uuid())
+  photo_url String
+
+  accommodationId String 
+  accommodation Accommodation @relation(fields: [accommodationId], references: [accommodation_id], onDelete: Cascade)
+
+  createdAT DateTime @default(now())
+  updatedAT DateTime @updatedAt
+}
+
+model Payment{
+  payment_id String @id @default(uuid())
+  amount Float
+
+  userId String 
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  bookingId String @unique
+  booking Booking @relation(fields: [bookingId], references: [booking_id], onDelete: Cascade)
+  paymentMethodId String
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [paymentMethod_id], onDelete: Cascade)
+
+  createdAT DateTime @default(now())
+  updatedAT DateTime @updatedAt
+}
+
+model PaymentMethod{
+  paymentMethod_id String @id @default(uuid())
+  method String @unique
+
+  payment Payment[]
+
+  createdAT DateTime @default(now())
+  updatedAT DateTime @updatedAt
+}
+
+model City{
+  city_id String @id @default(uuid())
+  city_name String @unique
+
+  accommodation Accommodation[]
+
   createdAT DateTime @default(now())
   updatedAT DateTime @updatedAt
 }
@@ -88,6 +143,7 @@ enum BookingStatus {
   CANCELLED
   COMPLETED
 }
+
 enum Role {
   USER
   ADMIN

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAccommodationDto } from './dto/create-accommodation.dto';
-import { UpdateAccommodationDto } from './dto/update-accommodation.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateAccommodationDto, UpdateAccommodationDto } from './dto';
 
 @Injectable()
 export class AccommodationService {
@@ -9,7 +8,24 @@ export class AccommodationService {
     private prisma : PrismaService
   ){}
   create(createAccommodationDto: CreateAccommodationDto) {
-    return this.prisma.accommodation.create({data: createAccommodationDto})
+    const{description, price, location, rating, userId, cityId, accommodationCategoryId} = createAccommodationDto
+    return this.prisma.accommodation.create({
+      data: {
+        user: {
+          connect: {user_id: userId}
+        },
+        city: {
+          connect: {city_id: cityId}
+        },
+        accommodationCategory: {
+          connect: {accommodationCategory_id: accommodationCategoryId}
+        },
+        description,
+        price,
+        location,
+        rating
+      }
+    })
   }
 
   async findAll() {
@@ -17,14 +33,31 @@ export class AccommodationService {
   }
 
   async findOne(id: string) {
-    return await this.prisma.accommodation.findFirstOrThrow;
-  }
+    return await this.prisma.accommodation.findUnique({where: {accommodation_id: id}})}
 
   async update(id: string, updateAccommodationDto: UpdateAccommodationDto) {
-    return await this.prisma.accommodation.update({where: {id}, data: updateAccommodationDto});
+    const{description, price, location, rating, userId, cityId, accommodationCategoryId} = updateAccommodationDto
+    return this.prisma.accommodation.update({
+      where: {accommodation_id: id},
+      data: {
+        user: {
+          connect: {user_id: userId}
+        },
+        city: {
+          connect: {city_id: cityId}
+        },
+        accommodationCategory: {
+          connect: {accommodationCategory_id: accommodationCategoryId}
+        },
+        description,
+        price,
+        location,
+        rating
+      }
+    })
   }
 
   async remove(id: string) {
-    return await this.prisma.accommodation.delete({where: {id}});
+    return await this.prisma.accommodation.delete({where: {accommodation_id: id}});
   }
 }

@@ -5,8 +5,8 @@ import { IsDateString, IsNotEmpty, IsNumber, IsString } from "class-validator";
 export class CreateBookingDto {
     @ApiProperty()
     @IsNotEmpty()
-    @IsNumber()
-    totalCost: number
+    @IsString()
+    totalCost: string
 
     @ApiProperty()
     @IsNotEmpty()
@@ -21,17 +21,12 @@ export class CreateBookingDto {
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    accommodation: Prisma.AccommodationCreateNestedOneWithoutBookingsInput
+    accommodationId: string
 
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    user: Prisma.UserCreateNestedOneWithoutBookingsInput
-
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsString()
-    host: Prisma.HostCreateNestedOneWithoutBookingInput
+    userId: string
 
     @ApiProperty({enum: BookingStatus})
     status: BookingStatus

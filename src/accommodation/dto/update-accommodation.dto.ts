@@ -1,24 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { PartialType } from '@nestjs/swagger';
+import { CreateAccommodationDto } from './create-accommodation.dto';
 
-export class UpdateAccommodationDto{
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsString()
-    name: string
-
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsString()
-    description: string
-
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsNumber()
-    price: number
-
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsString()
-    location: string
-}
+export class UpdateAccommodationDto extends PartialType(CreateAccommodationDto) {}

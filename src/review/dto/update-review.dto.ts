@@ -1,14 +1,7 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateReviewDto } from './create-review.dto';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger"
+import { IsNotEmpty, IsNumber, IsString } from "class-validator"
 
 export class UpdateReviewDto{
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsString()
-    title: string
-
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
@@ -18,6 +11,11 @@ export class UpdateReviewDto{
     @IsNotEmpty()
     @IsString()
     accommodationId: string
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    userId: string
 
     @ApiProperty()
     @IsNotEmpty()

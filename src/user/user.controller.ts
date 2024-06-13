@@ -3,22 +3,20 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AccessTokenGuard } from 'src/auth/guards';
-import { RolesGuard } from 'src/auth/guards/role.guard';
 import { Role } from '@prisma/client';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiOperation({summary: 'Create new user!'})
-  @ApiCreatedResponse({description: 'The user has been successfully created'})
-  @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
-  @ApiBadRequestResponse({description: 'Bad request!'})
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
-  }
+  // @ApiOperation({summary: 'Create new user!'})
+  // @ApiCreatedResponse({description: 'The user has been successfully created'})
+  // @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
+  // @ApiBadRequestResponse({description: 'Bad request!'})
+  // @Post()
+  // create(@Body() createUserDto: CreateUserDto) {
+  //   return this.userService.create(createUserDto);
+  // }
 
   @ApiOperation({summary: 'Get all users!'})
   @ApiCreatedResponse({description: 'Get all users successfully'})
@@ -33,7 +31,7 @@ export class UserController {
   @ApiCreatedResponse({description: 'Get user by id successfully'})
   @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
   @ApiBadRequestResponse({description: 'Bad request!'})
-  @Get('/:{id}') 
+  @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(id);
   }
@@ -42,7 +40,7 @@ export class UserController {
   @ApiCreatedResponse({description: 'Update user by id successfully'})
   @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
   @ApiBadRequestResponse({description: 'Bad request!'})
-  @Patch('/:{id}') 
+  @Patch(':id') 
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
   }
@@ -51,7 +49,7 @@ export class UserController {
   @ApiCreatedResponse({description: 'Delete user by idsuccessfully'})
   @ApiInternalServerErrorResponse({description: 'Internal Server Error!' })
   @ApiBadRequestResponse({description: 'Bad request!'})
-  @Delete('/:{id}') 
+  @Delete(':id') 
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
   }
